@@ -16,34 +16,31 @@ namespace GraphSpanningTreeCSharp
     {
         private static void Main(string[] args)
         {
-            Graph<int> graph = ReadFile("input.txt");
+            Graph graph = ReadFileWithAdjacencyList("input.txt");
+            //Console.WriteLine(graph.OutputGraph());
             List<int> verticesIndexes = ReadFileWithVertices("input2.txt");
 
-            Graph<int> inducedGraph = new Graph<int>();
-            if (graph != null && !graph.IsEmpty())
+            Graph inducedGraph = new Graph();
+            if (!graph.IsEmpty())
                 inducedGraph = ProcessGraph(graph, verticesIndexes);
             WriteFile(inducedGraph, "output.txt");
         }
 
-        private static Graph<int> ProcessGraph(Graph<int> graph, List<int> verticesIndexes)
+        private static Graph ProcessGraph(Graph graph, List<int> verticesIndexes)
         {
+            Graph inducedGraph = new Graph(graph); 
+            inducedGraph.BuildInducedGraph(verticesIndexes);
+            Console.WriteLine(graph.OutputGraph());
+            Console.WriteLine(inducedGraph.OutputGraph());
+
             throw new NotImplementedException();
         }
 
-        private static void WriteFile(Graph<int> inducedGraph, string fileName)
+        private static void WriteFile(Graph inducedGraph, string fileName)
         {
             using (StreamWriter writer = new StreamWriter(fileName))
             {
-                string adjacencyMatrixStr = "";
-                foreach (var row in inducedGraph.AdjacencyMatrixRepresentation)
-                {
-                    foreach (var edge in row)
-                    {
-                        adjacencyMatrixStr += edge.Weight.ToString();
-                        adjacencyMatrixStr += " ";
-                    }
-                    adjacencyMatrixStr += "\n";
-                }
+                string adjacencyMatrixStr = inducedGraph.OutputGraph();
                 writer.WriteLine(adjacencyMatrixStr);
             }
         }
@@ -67,9 +64,35 @@ namespace GraphSpanningTreeCSharp
             }
         }
 
-        private static Graph<int> ReadFile(string fileName)
+        private static Graph ReadFileWithAdjacencyList(string fileName)
         {
-            Graph<int> graph = new Graph<int>();
+            Graph graph;
+            using (StreamReader reader = new StreamReader(fileName))
+            {
+                int size = ReadNumber(reader);
+                string[] numbersStrs = new string[size];
+                for (int i = 0; i < size; i++)
+                {
+                    numbersStrs[i] = reader.ReadLine();
+                }
+                graph = new Graph(size, numbersStrs);
+            }
+            return graph;
+        }
+
+        private static int ReadNumber(StreamReader reader)
+        {
+            var numberStr = reader.ReadLine();
+            if (numberStr == null)
+                throw new Exception("String is empty (ReadNumber)");
+            var array = numberStr.Split();
+            int number = int.Parse(array[0]);
+            return number;
+        }
+
+        private static Graph ReadFileWithAdjacencyMatrix(string fileName)
+        {
+            Graph graph;
             using (StreamReader reader = new StreamReader(fileName))
             {
                 var sizeStr = reader.ReadLine();
@@ -83,7 +106,7 @@ namespace GraphSpanningTreeCSharp
                 {
                     numbersStrs[i] = reader.ReadLine();
                 }
-                graph = new Graph<int>(size, numbersStrs);
+                graph = new Graph(size, numbersStrs);
             }
             return graph;
         }

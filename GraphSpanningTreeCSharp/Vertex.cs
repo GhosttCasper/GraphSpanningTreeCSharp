@@ -6,12 +6,14 @@ using System.Threading.Tasks;
 
 namespace GraphSpanningTreeCSharp
 {
-    public class Vertex<T> where T : IComparable
+    public class Vertex
     {
         public bool IsDiscovered;
-        public Vertex<T> Parent;
+        public Vertex Parent;
         public int Distance;
         public int Index;
+        public int Key; // минимальный вес среди всех ребер, соединяющих v с вершиной в дереве.
+        public int Color;
         public int DiscoveryTime;
         public int FinishingTime;
 
