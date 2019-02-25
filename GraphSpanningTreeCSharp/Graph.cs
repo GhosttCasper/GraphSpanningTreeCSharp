@@ -15,29 +15,46 @@ namespace GraphSpanningTreeCSharp
     public class Graph
     {
         public List<List<Vertex>> AdjacencyList = new List<List<Vertex>>();
-        //public List<Vertex> Vertices = new List<Vertex>();
-        //public List<Edge> Edges = new List<Edge>();
+        public Dictionary<string, int> Weights = new Dictionary<string, int>();
         private int Size;
+        public List<Vertex> Vertices = new List<Vertex>();
+
 
         public Graph(int size, string[] strs)
         {
             Size = size;
+            for (int i = 1; i <= Size; i++)
+                Vertices.Add(new Vertex(i));
+
             try
             {
+                int index = 1;
                 foreach (var str in strs)
                 {
                     List<Vertex> list = new List<Vertex>();
                     var array = str.Split();
                     if (!string.IsNullOrEmpty(str))
+                    {
+                        bool weight = false;
+                        string key = "";
                         foreach (var item in array)
                         {
                             int intVar = int.Parse(item);
-                            if (intVar > Size)
-                                throw new Exception("The vertex is missing");
-                            Vertex curVertex = new Vertex(intVar);
-                            list.Add(curVertex);
+                            if (!weight)
+                            {
+                                if (intVar > Size)
+                                    throw new Exception("The vertex is missing");
+                                key = index.ToString() + " " + item;
+                                list.Add(Vertices[intVar - 1]);
+                            }
+                            else
+                                Weights.Add(key, intVar);
+
+                            weight = !weight;
                         }
+                    }
                     AdjacencyList.Add(list);
+                    index++;
                 }
             }
             catch (Exception e)
@@ -46,7 +63,7 @@ namespace GraphSpanningTreeCSharp
                     Console.WriteLine("String is empty (Graph)");
             }
         }
-        
+
         public Graph()
         {
         }
@@ -54,7 +71,9 @@ namespace GraphSpanningTreeCSharp
         public Graph(Graph previousGraph) // Copy constructor.
         {
             AdjacencyList = previousGraph.AdjacencyList;
+            Weights = previousGraph.Weights;
             Size = previousGraph.Size;
+            Vertices = previousGraph.Vertices;
         }
 
         public void BuildInducedGraph(List<int> verticesIndexes)
@@ -62,19 +81,23 @@ namespace GraphSpanningTreeCSharp
             foreach (var vertexIndex in verticesIndexes)
             {
                 int index = vertexIndex - 1;
-                foreach (var curEdge in Edges)
-                {
-                    if (curEdge.IncidentFrom == Vertices[index] || curEdge.IncidentTo == Vertices[index])
-                        Edges.Remove(curEdge);
-                }
-                AdjacencyMatrix.RemoveAt(index);
-                foreach (var row in AdjacencyMatrix)
-                {
-                    row.RemoveAt(index);
-                }
-                Vertices.RemoveAt(index);
+                AdjacencyList.RemoveAt(index);
                 Size--;
             }
+
+            for (int i = 0; i < AdjacencyList.Count(); i++)
+            {
+                AdjacencyList[i] = AdjacencyList[i].Where(a => !verticesIndexes.Contains(a.Index)).ToList();
+            }
+
+            foreach (var weight in Weights)
+            {
+                foreach (var vertexIndex in verticesIndexes)
+                {
+                    if(weight.Key==vertexIndex.ToString())
+                }
+            }
+              
         }
 
         /// <summary>
@@ -82,11 +105,12 @@ namespace GraphSpanningTreeCSharp
         /// </summary>
         public void MinimumSpanningTreeKruskal()
         {
-            for (int i = 0; i < Size; i++)
+            Weights = Weights.OrderBy(a => a.Value).ToDictionary(a => a.Key, a => a.Value); // время O(ElgE)
+            foreach (var edge in Weights)
             {
-                Vertices[i].Color = i;
+
             }
-            Edges.Sort((e1, e2) => e1.Weight.CompareTo(e2.Weight)); // время O(ElgE)
+
             for (int i = 0; i < Edges.Count(); i++)
             {
                 if (Edges[i].IncidentFrom.Color != Edges[i].IncidentTo.Color)
@@ -162,49 +186,8 @@ namespace GraphSpanningTreeCSharp
 
         public bool IsEmpty()
         {
-            return AdjacencyMatrix.Count == 0;
+            return AdjacencyList.Count == 0;
         }
     }
 }
 
-/*public Graph(int size, string[] strs)
-        {
-            Size = size;
-            try
-            {
-                int i = 0, j = 0;
-                foreach (var str in strs)
-                {
-                    Vertex incidentFrom = new Vertex(i);
-                    Vertices.Add(incidentFrom);
-                    List<Edge> list = new List<Edge>();
-                    var array = str.Split();
-                    foreach (var item in array)
-                    {
-                        int intVar = int.Parse(item);
-                        Edge curEdge = intVar == 0 ? new Edge(intVar) : new Edge(incidentFrom, new Vertex(j), intVar);
-                        list.Add(curEdge);
-                        if (intVar != 0 && i >= j)
-                            Edges.Add(curEdge);
-                        j++;
-                    }
-                    AdjacencyMatrix.Add(list);
-                    i++;
-                }
-            }
-            catch (Exception e)
-            {
-                if (e is NullReferenceException || e is FormatException)
-                    Console.WriteLine("String is empty (Graph)");
-            }
-
-        }
-
-            public Graph(Graph previousGraph) // Copy constructor.
-        {
-            AdjacencyMatrix = previousGraph.AdjacencyMatrix;
-            Vertices = previousGraph.Vertices;
-            Edges = previousGraph.Edges;
-            Size = previousGraph.Size;
-        }
- */
