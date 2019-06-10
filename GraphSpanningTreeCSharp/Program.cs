@@ -20,28 +20,26 @@ namespace GraphSpanningTreeCSharp
             //Console.WriteLine(graph.OutputGraph());
             List<int> verticesIndexes = ReadFileWithVertices("input2.txt");
 
-            Graph inducedGraph = new Graph();
             if (!graph.IsEmpty())
-                inducedGraph = ProcessGraph(graph, verticesIndexes);
-            WriteFile(inducedGraph, "output.txt");
+                graph = ProcessGraph(graph, verticesIndexes);
+            WriteFile(graph, "output.txt");
         }
 
         private static Graph ProcessGraph(Graph graph, List<int> verticesIndexes)
         {
-            Graph inducedGraph = new Graph(graph); 
-            inducedGraph.BuildInducedGraph(verticesIndexes);
-            Console.WriteLine(graph.OutputGraph());
-            Console.WriteLine(inducedGraph.OutputGraph());
-
-            throw new NotImplementedException();
+            graph.BuildInducedGraph(verticesIndexes);
+            //graph.MinimumSpanningTreePrim();
+            int totalWeight = graph.MinimumSpanningTreeKruskal();
+            List<Edge> minimumSpanningTree = graph.GetMinimumSpanningTreeKruskal();
+            return graph;
         }
 
         private static void WriteFile(Graph inducedGraph, string fileName)
         {
             using (StreamWriter writer = new StreamWriter(fileName))
             {
-                string adjacencyMatrixStr = inducedGraph.OutputGraph();
-                writer.WriteLine(adjacencyMatrixStr);
+                //string adjacencyMatrixStr = inducedGraph.OutputGraph();
+                // writer.WriteLine(adjacencyMatrixStr);
             }
         }
 
