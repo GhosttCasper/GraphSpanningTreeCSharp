@@ -8,14 +8,14 @@ namespace GraphSpanningTreeCSharp
 {
     public class Vertex
     {
-        public int Color;
-        public int Index;
+        public int Color { get; set; }
+        public int Index { get; }
 
-        public int Key; // минимальный вес среди всех ребер, соединяющих v с вершиной в дереве.
-        public Vertex Parent;
-        public bool Discovered;
+        public int Key { get; set; }    // минимальный вес среди всех ребер, соединяющих v с вершиной в дереве.
+        public Vertex Parent { get; set; }
+        public bool Discovered { get; set; }
 
-        public List<IncidentEdge> AdjacencyList;
+        public List<IncidentEdge> AdjacencyList { get; }
 
         //public int Distance;
         //public int DiscoveryTime;

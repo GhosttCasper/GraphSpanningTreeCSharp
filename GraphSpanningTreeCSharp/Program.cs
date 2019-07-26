@@ -17,29 +17,31 @@ namespace GraphSpanningTreeCSharp
         private static void Main(string[] args)
         {
             Graph graph = ReadFileWithAdjacencyList("input.txt");
-            //Console.WriteLine(graph.OutputGraph());
             List<int> verticesIndexes = ReadFileWithVertices("input2.txt");
 
             if (!graph.IsEmpty())
-                graph = ProcessGraph(graph, verticesIndexes);
+                ProcessGraph(graph, verticesIndexes);
             WriteFile(graph, "output.txt");
+
+            string outputGraphFile = "..\\..\\output.txt";
+            graph.SaveTxtFormatGraph(outputGraphFile);
         }
 
-        private static Graph ProcessGraph(Graph graph, List<int> verticesIndexes)
+        private static void ProcessGraph(Graph graph, List<int> verticesIndexes)
         {
             graph.BuildInducedGraph(verticesIndexes);
             //graph.MinimumSpanningTreePrim();
             int totalWeight = graph.MinimumSpanningTreeKruskal();
-            List<Edge> minimumSpanningTree = graph.GetMinimumSpanningTreeKruskal();
-            return graph;
+            Console.WriteLine("Total weight: " + totalWeight);
+
         }
 
         private static void WriteFile(Graph inducedGraph, string fileName)
         {
             using (StreamWriter writer = new StreamWriter(fileName))
             {
-                //string adjacencyMatrixStr = inducedGraph.OutputGraph();
-                // writer.WriteLine(adjacencyMatrixStr);
+                writer.WriteLine(inducedGraph.ToString());
+                writer.WriteLine(inducedGraph.ToTxtFile());
             }
         }
 
@@ -83,6 +85,7 @@ namespace GraphSpanningTreeCSharp
             var numberStr = reader.ReadLine();
             if (numberStr == null)
                 throw new Exception("String is empty (ReadNumber)");
+
             var array = numberStr.Split();
             int number = int.Parse(array[0]);
             return number;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,24 +15,27 @@ namespace GraphSpanningTreeCSharp
 {
     public class Graph
     {
-        public List<Vertex> VerticesList = new List<Vertex>();
-        public List<Edge> EdgesList = new List<Edge>();
+        public List<Vertex> VerticesList { get; }
+        public List<Edge> EdgesList { get; set; }
 
-        private int Size;
+        private int Size { get; set; }
 
 
         public Graph(int size, string[] strs)
         {
             Size = size;
+            VerticesList = new List<Vertex>(Size);
             for (int i = 1; i <= Size; i++)
                 VerticesList.Add(new Vertex(i));
+            EdgesList = new List<Edge>();
 
             try
             {
-                int curIndex = 0;
+                int curArrayIndex = 0;
                 foreach (var str in strs)
                 {
-                    Vertex curVertexFrom = VerticesList[curIndex];
+                    Vertex curVertexFrom = VerticesList[curArrayIndex];
+
                     var array = str.Split();
                     int length = array.Length;
                     if (!string.IsNullOrEmpty(str))
@@ -45,9 +49,12 @@ namespace GraphSpanningTreeCSharp
                             intVar = int.Parse(array[i]);
                             IncidentEdge curEdge = new IncidentEdge(curVertexTo, intVar);
                             curVertexFrom.AdjacencyList.Add(curEdge);
+
+                            if (curArrayIndex + 1 < curVertexTo.Index)
+                                EdgesList.Add(new Edge(curVertexFrom, curVertexTo, intVar));
                         }
 
-                    curIndex += 1;
+                    curArrayIndex += 1;
                 }
             }
             catch (Exception ex)
@@ -72,28 +79,27 @@ namespace GraphSpanningTreeCSharp
                     var adjacencyVertex = incidentEdge.IncidentTo.AdjacencyList;
                     adjacencyVertex.Remove(adjacencyVertex.First(edge => edge.IncidentTo.Index == index));
                 }
+
+                for (int i = 0; i < EdgesList.Count; i++)
+                {
+                    if (EdgesList[i].First.Index == index || EdgesList[i].Second.Index == index)
+                        EdgesList.RemoveAt(i);
+                }
             }
             foreach (var vertexToDeleteIndex in verticesIndexes)
             {
                 VerticesList.RemoveAt(vertexToDeleteIndex - 1);
             }
+
+            Size -= 1;
         }
 
         /// <summary>
-        /// Алгоритм Крускала. Сложность 0(Е lg V).
+        /// Алгоритм Крускала. Сложность 0(Е * lgV).
         /// </summary>
         public int MinimumSpanningTreeKruskal()
         {
-            foreach (var curVertex in VerticesList)
-            {
-                foreach (var incidentEdge in curVertex.AdjacencyList)
-                {
-                    if (curVertex.Index < incidentEdge.IncidentTo.Index)
-                        EdgesList.Add(new Edge(curVertex, incidentEdge.IncidentTo, incidentEdge.Weight));
-                }
-            }
-
-            EdgesList.Sort((first, second) => first.Weight.CompareTo(second.Weight));
+            EdgesList.Sort((first, second) => first.Weight.CompareTo(second.Weight)); // сортировка ребер по неубыванию
 
             int totalWeight = 0;
 
@@ -118,24 +124,13 @@ namespace GraphSpanningTreeCSharp
             return totalWeight;
         }
 
-        public List<Edge> GetMinimumSpanningTreeKruskal()
-        {
-            List<Edge> minimumSpanningTree = new List<Edge>();
-            foreach (var edge in EdgesList)
-            {
-                if (edge.InTree)
-                    minimumSpanningTree.Add(edge);
-            }
-
-            return minimumSpanningTree;
-        }
-
-        public int MinimumSpanningTreePrim() // алгоритм Прима
+        public List<Edge> MinimumSpanningTreePrim() // алгоритм Прима
         {
             Vertex source = VerticesList[0];
             source.Key = 0;
 
             List<Vertex> verticesToAddInTree = new List<Vertex>(VerticesList);
+            List<Edge> result = new List<Edge>();
 
             int totalWeight = 0;
 
@@ -143,17 +138,18 @@ namespace GraphSpanningTreeCSharp
             {
                 Vertex curVertex = ExtractMin(verticesToAddInTree);
                 totalWeight += curVertex.Key;
-                foreach (var incidentEdge in curVertex.AdjacencyList)
+                foreach (var edge in curVertex.AdjacencyList)
                 {
-                    if (!incidentEdge.IncidentTo.Discovered && incidentEdge.Weight < incidentEdge.IncidentTo.Key) //verticesToAddInTree.Contains(incidentEdge.IncidentTo)
+                    if (!edge.IncidentTo.Discovered && edge.Weight < edge.IncidentTo.Key)
                     {
-                        incidentEdge.IncidentTo.Parent = curVertex;
-                        incidentEdge.IncidentTo.Key = incidentEdge.Weight;
+                        edge.IncidentTo.Parent = curVertex;
+                        edge.IncidentTo.Key = edge.Weight;
+                        result.Add(new Edge(curVertex, edge.IncidentTo, edge.Weight));
                     }
                 }
             }
 
-            return totalWeight;
+            return result;
         }
 
         private Vertex ExtractMin(List<Vertex> vertices)
@@ -175,24 +171,51 @@ namespace GraphSpanningTreeCSharp
             return minVertex;
         }
 
-        //public string OutputGraph()
-        //{
-        //    string adjacencyMatrixStr = "";
-        //    foreach (var row in AdjacencyMatrix)
-        //    {
-        //        foreach (var edge in row)
-        //        {
-        //            adjacencyMatrixStr += edge.Weight.ToString();
-        //            adjacencyMatrixStr += " ";
-        //        }
-        //        adjacencyMatrixStr += "\n";
-        //    }
-        //    return adjacencyMatrixStr;
-        //}
-
         public bool IsEmpty()
         {
             return VerticesList.Count == 0;
+        }
+
+        public void SaveTxtFormatGraph(string graphFile)
+        {
+            using (StreamWriter writer = new StreamWriter(graphFile))
+            {
+                writer.WriteLine(Size);
+                writer.WriteLine(ToTxtFile());
+            }
+        }
+
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (var vertex in VerticesList)
+            {
+                foreach (var incidentEdge in vertex.AdjacencyList)
+                {
+                    sb.Append(vertex.Index + " ");
+                    sb.Append(incidentEdge.IncidentTo.Index + " ");
+                    sb.Append(incidentEdge.Weight);
+                    sb.Append(Environment.NewLine);
+                }
+            }
+
+            return sb.ToString();
+        }
+
+        public string ToTxtFile()
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (var edge in EdgesList)
+            {
+                if (edge.InTree)
+                {
+                    sb.Append(edge.First.Index + " ");
+                    sb.Append(edge.Second.Index + " ");
+                    sb.Append(edge.Weight);
+                    sb.Append(Environment.NewLine);
+                }
+            }
+            return sb.ToString();
         }
     }
 }

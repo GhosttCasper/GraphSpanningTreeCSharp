@@ -8,10 +8,10 @@ namespace GraphSpanningTreeCSharp
 {
     public class Edge
     {
-        public int Weight;
-        public Vertex First; // IncidentFrom выходит (начало)
-        public Vertex Second; // IncidentTo входит (конец)
-        public bool InTree;
+        public Vertex First { get; }  // IncidentFrom выходит (начало)
+        public Vertex Second { get; } // IncidentTo входит (конец)
+        public int Weight { get; }
+        public bool InTree { get; set; }
 
         public Edge(Vertex incidentFrom, Vertex incidentTo, int weight)
         {
@@ -20,15 +20,15 @@ namespace GraphSpanningTreeCSharp
             Weight = weight;
             InTree = false;
         }
-        
-    }
-    
-    public class IncidentEdge 
-    {
-        public int Weight;
-        public Vertex IncidentTo; // входит (конец)
 
-        public IncidentEdge(Vertex incidentTo, int weight) 
+    }
+
+    public class IncidentEdge
+    {
+        public int Weight { get; }
+        public Vertex IncidentTo { get; } // входит (конец)
+
+        public IncidentEdge(Vertex incidentTo, int weight)
         {
             IncidentTo = incidentTo;
             Weight = weight;
